@@ -34,7 +34,7 @@ if __name__ == "__main__":
     # Define arguments
     parser.add_argument("--world_name", type=str, required=False, default="world", help="Name of the world")
     parser.add_argument("--simulation_name", type=str, required=False, default="multiverse_smoothing", help="Name of the simulation")
-    parser.add_argument("--port", type=str, required=False, default="1004", help="Port number")
+    parser.add_argument("--port", type=str, required=False, default="7554", help="Port number")
     parser.add_argument("--object_names", type=str, required=False, default="", help="Object names to smooth data from")
     parser.add_argument("--attribute_names", type=str, required=False, default="", help="Attribute names to smooth data from")
     parser.add_argument("--map", type=str, required=False, default="joint,actuator", help="Map from data to smooth data")

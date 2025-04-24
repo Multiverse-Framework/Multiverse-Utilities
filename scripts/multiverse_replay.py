@@ -33,7 +33,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Replay a simulation log file')
     # Define arguments
     parser.add_argument("--world_name", type=str, required=False, default="world", help="Name of the world")
-    parser.add_argument("--port", type=str, required=False, default="1003", help="Port number")
+    parser.add_argument("--port", type=str, required=False, default="7553", help="Port number")
     parser.add_argument("--data_path", type=str, default="data.csv", required=False, help='Path to the CSV file containing the simulation log data')
     parser.add_argument("--attribute_names", type=str, default="", required=False, help='Attribute names to send')
     parser.add_argument("--start_time", type=float, default=0.0, required=False, help='Start time of the simulation')

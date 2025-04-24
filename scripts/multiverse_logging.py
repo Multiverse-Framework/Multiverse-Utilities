@@ -33,7 +33,7 @@ if __name__ == "__main__":
 
     # Define arguments
     parser.add_argument("--world_name", type=str, required=False, default="world", help="Name of the world")
-    parser.add_argument("--port", type=str, required=False, default="1002", help="Port number")
+    parser.add_argument("--port", type=str, required=False, default="7552", help="Port number")
     parser.add_argument("--save_path", type=str, required=False, default="data.csv", help="Path to save the data")
     parser.add_argument("--object_names", type=str, required=False, default="", help="Object names to log data from")
     parser.add_argument("--attribute_names", type=str, required=False, default="", help="Attribute names to log data from")

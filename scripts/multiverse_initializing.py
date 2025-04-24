@@ -32,7 +32,8 @@ if __name__ == "__main__":
 
     # Define arguments
     parser.add_argument("--world_name", type=str, required=False, default="world", help="Name of the world")
-    parser.add_argument("--port", type=str, required=False, default="1001", help="Port number")
+    parser.add_argument("--simulation_name", type=str, required=False, default="multiverse_initializer", help="Name of the simulation")
+    parser.add_argument("--port", type=str, required=False, default="7551", help="Port number")
     parser.add_argument("--data_path", type=str, required=False, default="data.yaml", help="Path to load the data")
 
     # Parse arguments
@@ -42,7 +43,7 @@ if __name__ == "__main__":
 
     multiverse_meta_data = MultiverseMetaData(
         world_name=args.world_name,
-        simulation_name="multiverse_initializer",
+        simulation_name=args.simulation_name,
         length_unit="m",
         angle_unit="rad",
         mass_unit="kg",

@@ -13,7 +13,7 @@ class MultiverseSmoother(MultiverseClient):
         print(f"WARN: {message}")
 
     def _run(self) -> None:
-        self.loginfo("Start logging.")
+        self.loginfo("Start smoothing.")
         self._connect_and_start()
 
     def send_and_receive_meta_data(self) -> None:
@@ -29,7 +29,7 @@ import time
 import numpy
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=f"Logging data from multiverse.")
+    parser = argparse.ArgumentParser(description=f"Smoothing data from multiverse.")
 
     # Define arguments
     parser.add_argument("--world_name", type=str, required=False, default="world", help="Name of the world")
@@ -65,8 +65,23 @@ if __name__ == "__main__":
     for object_name in object_names:
         multiverse_logger.request_meta_data["send"][f"{object_name.replace(map_data[0],map_data[1])}"] = [f"cmd_{attribute_name}" for attribute_name in attribute_names]
         multiverse_logger.request_meta_data["receive"][object_name] = attribute_names
-    multiverse_logger.send_and_receive_meta_data()
 
+    try:
+        while True:
+            multiverse_logger.send_and_receive_meta_data()
+            if "receive" in multiverse_logger.response_meta_data:
+                for object_name in object_names:
+                    if object_name not in multiverse_logger.response_meta_data["receive"]:
+                        break
+                else:
+                    break
+            time.sleep(1.0)
+    except KeyboardInterrupt:
+        multiverse_logger.stop()
+        exit(0)
+
+    time.sleep(1.0)
+    
     send_data = []
     for object_name, object_data in multiverse_logger.response_meta_data["receive"].items():
         for attribute_name, attribute_values in object_data.items():

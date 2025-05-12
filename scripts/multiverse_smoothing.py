@@ -76,16 +76,18 @@ if __name__ == "__main__":
                 else:
                     break
             time.sleep(1.0)
+        while True:
+            send_data = []
+            for object_name, object_data in multiverse_logger.response_meta_data["receive"].items():
+                for attribute_name, attribute_values in object_data.items():
+                    send_data += attribute_values
+            if any(x is None for x in send_data):
+                time.sleep(1.0)
+            else:
+                break
     except KeyboardInterrupt:
         multiverse_logger.stop()
         exit(0)
-
-    time.sleep(1.0)
-    
-    send_data = []
-    for object_name, object_data in multiverse_logger.response_meta_data["receive"].items():
-        for attribute_name, attribute_values in object_data.items():
-            send_data += attribute_values
 
     send_data = numpy.array(send_data)
     multiverse_logger.send_data = [0.0] + send_data.tolist()

@@ -38,6 +38,7 @@ if __name__ == "__main__":
     parser.add_argument("--object_names", type=str, required=False, default="", help="Object names to smooth data from")
     parser.add_argument("--attribute_names", type=str, required=False, default="", help="Attribute names to smooth data from")
     parser.add_argument("--map", type=str, required=False, default="joint,actuator", help="Map from data to smooth data")
+    parser.add_argument("--time_constant", type=float, default=0.02, required=False, help="Time constant for smoothing")
 
     # Parse arguments
     args = parser.parse_args()
@@ -119,7 +120,7 @@ if __name__ == "__main__":
     multiverse_logger.send_data = [0.0] + send_data.tolist()
     multiverse_logger.send_and_receive_data()
 
-    T = 0.02
+    T = args.time_constant
     D = 1
     T1 = T * T
     T2 = 2 * D * T

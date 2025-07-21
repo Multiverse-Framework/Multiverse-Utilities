@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
 
+import os
+import sys
+
+current_dir = os.path.dirname(__file__)
+multiverse_client_py_dir = os.path.abspath(os.path.join(current_dir, '..', '..', 'Multiverse-Launch', 'src', 'multiverse_connectors', 'multiverse_python_connector'))
+sys.path.insert(0, multiverse_client_py_dir)
+
 from multiverse_client_py import MultiverseClient, MultiverseMetaData
 
 class MultiverseLogger(MultiverseClient):

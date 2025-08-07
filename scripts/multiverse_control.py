@@ -179,7 +179,8 @@ if __name__ == "__main__":
                 if input_object not in multiverse_controller.request_meta_data["receive"]:
                     multiverse_controller.request_meta_data["receive"][input_object] = []
                 for input_attribute, input_attribute_data in dependency_data.items():
-                    multiverse_controller.request_meta_data["receive"][input_object].append(input_attribute)
+                    if input_attribute not in multiverse_controller.request_meta_data["receive"][input_object]:
+                        multiverse_controller.request_meta_data["receive"][input_object].append(input_attribute)
                     gain_dict = input_attribute_data.get("gain", None)
                     gain = Gain(kp=gain_dict.get("kp", 1.0), kv=gain_dict.get("kv", None)) if gain_dict is not None else Gain()
                     objects[input_object][input_attribute] = MultiverseData(

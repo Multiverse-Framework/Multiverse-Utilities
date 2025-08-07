@@ -80,7 +80,7 @@ if __name__ == "__main__":
             send_object_name = object_name.replace(map_data[0],map_data[1])
             multiverse_logger.request_meta_data["send"][f"{send_object_name}"] = []
             for attribute_name in object_attributes.keys():
-                if attribute_name in ["joint_rvalue", "joint_tvalue", "joint_angular_velocity", "joint_linear_velocity"]:
+                if attribute_name in ["joint_angular_position", "joint_linear_position", "joint_angular_velocity", "joint_linear_velocity"]:
                     multiverse_logger.request_meta_data["send"][send_object_name].append(f"cmd_{attribute_name}")
                 else:
                     raise ValueError(f"Unknown attribute name: {attribute_name}")
@@ -88,7 +88,7 @@ if __name__ == "__main__":
         multiverse_logger.request_meta_data["send"] = {}
         multiverse_logger.request_meta_data["receive"] = {}
         for object_name in object_names:
-            if any(attribute_name not in ["joint_rvalue", "joint_tvalue", "joint_angular_velocity", "joint_linear_velocity"] for attribute_name in attribute_names):
+            if any(attribute_name not in ["joint_angular_position", "joint_linear_position", "joint_angular_velocity", "joint_linear_velocity"] for attribute_name in attribute_names):
                 raise ValueError(f"Unknown attribute name in {object_name}: {attribute_names}")
             multiverse_logger.request_meta_data["send"][f"{object_name.replace(map_data[0],map_data[1])}"] = [f"cmd_{attribute_name}" for attribute_name in attribute_names]
             multiverse_logger.request_meta_data["receive"][object_name] = attribute_names

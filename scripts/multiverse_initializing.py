@@ -28,7 +28,7 @@ import argparse
 import yaml
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=f"Logging data from multiverse.")
+    parser = argparse.ArgumentParser(description=f"Initialize data for multiverse.")
 
     # Define arguments
     parser.add_argument("--world_name", type=str, required=False, default="world", help="Name of the world")

@@ -9,7 +9,45 @@ import yaml
 import dataclasses
 from typing import Tuple, Optional, Dict, List
 import numpy
+from scipy.spatial.transform import Rotation as R
 
+
+@dataclasses.dataclass
+class QuaternionWithGain:
+    quaternion: numpy.ndarray
+    gain: float
+
+    def __post_init__(self):
+        assert self.quaternion.shape == (4,), f"Quaternion must be a 4D vector, got shape {self.quaternion.shape}."
+        assert isinstance(self.gain, (int, float)), f"Gain must be a number, got {type(self.gain)}."
+        assert numpy.isclose(
+            numpy.linalg.norm(self.quaternion), 1.0
+        ), f"Quaternion must be normalized, got norm {numpy.linalg.norm(self.quaternion)}."
+        if self.gain < 0:
+            self.quaternion[0] = -self.quaternion[0]  # Invert the quaternion if gain is negative
+            self.gain = -self.gain
+
+def compose_quaternion(quaternion_with_gains: List[QuaternionWithGain]) -> R:
+    if not quaternion_with_gains:
+        return R.identity()
+
+    R_total = R.identity()
+    for quaternion_with_gain in quaternion_with_gains:
+        w, x, y, z = quaternion_with_gain.quaternion
+        R_total = R_total * R.from_quat([x, y, z, w])
+    return R_total
+
+def compose_quaternion_with_gains(quaternion_with_gains: List[QuaternionWithGain]) -> numpy.ndarray:
+    gain = None
+    for quaternion_with_gain in quaternion_with_gains:
+        if gain is None:
+            gain = quaternion_with_gain.gain
+        else:
+            assert numpy.isclose(
+                gain, quaternion_with_gain.gain
+            ), f"All gains must be the same, got {gain} and {quaternion_with_gain.gain}."
+    assert gain is not None, "At least one quaternion with gain must be provided."
+    return compose_quaternion(quaternion_with_gains).as_rotvec() * gain
 
 @dataclasses.dataclass
 class Gain:
@@ -31,17 +69,31 @@ class MultiverseData:
     depends_on: Optional[Dict[str, List[str]]] = None
     _value: Optional[numpy.ndarray] = None
 
-    def set_value(self, value: numpy.ndarray) -> None:
+    def set_value(self, value: numpy.ndarray, with_gain=True) -> None:
         if self._value is not None:
             assert value.shape == self.value.shape, f"Value shape {value.shape} does not match expected shape {self.value.shape}."
         dependency_sum = numpy.zeros_like(value)
+        quaternion_with_gains = []
         if self.depends_on is not None:
             for object_name, attribute_names in self.depends_on.items():
                 assert object_name in objects, f"Dependency {object_name} not found in receive objects."
                 for attribute_name in attribute_names:
                     assert attribute_name in objects[object_name], f"Attribute {attribute_name} not found in object {object_name}."
-                    dependency_sum += objects[object_name][attribute_name].value
-        self._value = self.gain.calculate(value + dependency_sum)
+                    if attribute_name != "quaternion":
+                        dependency_sum += objects[object_name][attribute_name].value
+                    else:
+                        quaternion_with_gains.append(
+                            QuaternionWithGain(
+                                quaternion=objects[object_name][attribute_name].value,
+                                gain=objects[object_name][attribute_name].gain.kp,
+                            )
+                        )
+        if len(quaternion_with_gains) > 0:
+            assert dependency_sum.size == 3, f"Dependency sum must be a 3D vector, got shape {dependency_sum.shape}."
+            dependency_sum += compose_quaternion_with_gains(quaternion_with_gains)
+        self._value = value + dependency_sum
+        if with_gain:
+            self._value = self.gain.calculate(self._value)
         if self.range is not None:
             self._value = numpy.clip(self._value, self.range[0], self.range[1])
 
@@ -90,7 +142,7 @@ class MultiverseController(MultiverseClient):
                     assert attribute_name in objects[object_name], f"Attribute {attribute_name} not found in object {object_name}."
                     if any([attribute_value is None for attribute_value in attribute_values]):
                         return False
-                    objects[object_name][attribute_name].set_value(numpy.array(attribute_values))
+                    objects[object_name][attribute_name].set_value(numpy.array(attribute_values), with_gain=attribute_name != "quaternion")
         return True
 
     def loop(self) -> None:
@@ -106,9 +158,10 @@ class MultiverseController(MultiverseClient):
         receive_data = self.receive_data[1:]
         for object_name, object_data in response_meta_data["receive"].items():
             assert object_name in objects, f"Object {object_name} not found in objects."
-            for attribute_name in object_data.keys():
+            for attribute_name, attribute_values in object_data.items():
                 assert attribute_name in objects[object_name], f"Attribute {attribute_name} not found in object {object_name}."
-                objects[object_name][attribute_name].set_value(numpy.array([receive_data.pop(0)]))
+                attribute_values = numpy.array([receive_data.pop(0) for _ in range(len(attribute_values))])
+                objects[object_name][attribute_name].set_value(attribute_values, with_gain=attribute_name != "quaternion")
 
 
 if __name__ == "__main__":
@@ -203,7 +256,7 @@ if __name__ == "__main__":
         while True:
             start_time = time.time()
             multiverse_controller.loop()
-            sleep_time = max(0.0, (1.0 / args.rate) - time.time() - start_time)
+            sleep_time = max(0.0, (1.0 / args.rate) - time.time() + start_time)
             if sleep_time > 0:
                 time.sleep(sleep_time)
     except KeyboardInterrupt:

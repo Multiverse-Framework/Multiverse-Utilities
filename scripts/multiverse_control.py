@@ -20,9 +20,9 @@ class QuaternionWithGain:
     def __post_init__(self):
         assert self.quaternion.shape == (4,), f"Quaternion must be a 4D vector, got shape {self.quaternion.shape}."
         assert isinstance(self.gain, (int, float)), f"Gain must be a number, got {type(self.gain)}."
-        assert numpy.isclose(
-            numpy.linalg.norm(self.quaternion), 1.0
-        ), f"Quaternion must be normalized, got norm {numpy.linalg.norm(self.quaternion)}."
+        if not numpy.isclose(numpy.linalg.norm(self.quaternion), 1.0):
+            print(f"Warning: Quaternion {self.quaternion} is not normalized, normalizing it.")
+            self.quaternion = self.quaternion / numpy.linalg.norm(self.quaternion)
         if self.gain < 0:
             self.quaternion[0] = -self.quaternion[0]  # Invert the quaternion if gain is negative
             self.gain = -self.gain
